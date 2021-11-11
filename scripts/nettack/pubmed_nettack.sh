@@ -1,10 +1,10 @@
 #!/bin/bash
-
+ptb_rate=$1
 python train.py \
     --seed 10 \
-    --dataset polblogs \
+    --dataset pubmed \
     --attack nettack \
-    --ptb_rate 3 \
+    --ptb_rate $ptb_rate \
     --alpha  0.3 \
     --beta 0.5  \
     --gamma 1 \

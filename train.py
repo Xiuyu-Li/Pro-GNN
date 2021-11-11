@@ -48,7 +48,7 @@ if args.cuda:
 if args.ptb_rate == 0:
     args.attack = "no"
 
-print(args)
+print(args, flush=True)
 
 # Here the random seed is to split the train/val/test data,
 # we need to set the random seed to be the same as that when you generate the perturbed graph
@@ -97,6 +97,13 @@ if args.only_gcn:
 else:
     perturbed_adj, features, labels = preprocess(perturbed_adj, features, labels, preprocess_adj=False, device=device)
     prognn = ProGNN(model, args, device)
+
+    time_run = 0
+    torch.cuda.synchronize()
+    time0 = time.time()
     prognn.fit(features, perturbed_adj, labels, idx_train, idx_val)
     prognn.test(features, labels, idx_test)
+    torch.cuda.synchronize()
+    time_run += time.time() - time0
+    print("total time: ", time_run)
 
