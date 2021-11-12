@@ -5,6 +5,7 @@ import torch
 from deeprobust.graph.defense import GCN, ProGNN
 from deeprobust.graph.data import Dataset, PrePtbDataset
 from deeprobust.graph.utils import preprocess, encode_onehot, get_train_val_test
+from model import GPRGNN, APPNP_Net
 
 # Training settings
 parser = argparse.ArgumentParser()
@@ -39,6 +40,7 @@ parser.add_argument('--outer_steps', type=int, default=1, help='steps for outer 
 parser.add_argument('--lr_adj', type=float, default=0.01, help='lr for training adj')
 parser.add_argument('--symmetric', action='store_true', default=False,
             help='whether use symmetric matrix')
+parser.add_argument('--method', type=str, default='gcn', choices=['gcn', 'gprgnn', 'appnp'], help='model')
 
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
@@ -85,10 +87,13 @@ if args.attack == 'meta' or args.attack == 'nettack':
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
 
-model = GCN(nfeat=features.shape[1],
-            nhid=args.hidden,
-            nclass=labels.max().item() + 1,
-            dropout=args.dropout, device=device)
+if args.method == 'gcn':
+    model = GCN(nfeat=features.shape[1],
+                nhid=args.hidden,
+                nclass=labels.max().item() + 1,
+                dropout=args.dropout, device=device)
+elif args.method == 'gprgnn':
+    model = GPRGNN(features.shape[1], args.hidden, labels.max().item() + 1, alpha=.9, K=10)
 
 if args.only_gcn:
     perturbed_adj, features, labels = preprocess(perturbed_adj, features, labels, preprocess_adj=False, sparse=True, device=device)
